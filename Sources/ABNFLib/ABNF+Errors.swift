@@ -52,15 +52,27 @@ extension ABNF {
         /// The message describes what grammar construct was malformed or missing.
         public let message: String
         
-        /// The line number in the input string where the parse failed.
+        /// The index within the source text where the error occurred.
         ///
         /// This number points to the specific line number where the parse failed.
-        public let line: Int
+        public let cursor: String.Index
         
-        /// The column number in the failing line where the parse failed.
-        ///
-        /// This number points to the specific character  on the line where the parse failed.
-        public let column: Int
+        public func location(in string: any StringProtocol) -> (line:Int, column:Int) {
+            var line = 1
+            var column = 1
+            
+            for ch in string[ string.startIndex ..< min(string.endIndex, cursor)] {
+                if ch.isNewline {  // important: this catches when String makes CR LF be a single grapheme cluster.
+                    line += 1
+                    column = 1
+                } else {
+                    column += 1
+                }
+            }
+            
+            return (line:line, column:column)
+        }
+
     }
     
     /// The result of a successful validation operation.

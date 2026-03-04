@@ -183,12 +183,14 @@ import Testing
 }
 
 @Test func parseSyntaxErrorRule() async throws {
+    let source = "; comment\r\n" + "badly-defined = [%x20] ) \"bad\"\r\n"
     do {
-        let _ = try ABNF(string: "; comment\r\n" + "badly-defined = [%x20] ) \"bad\"\r\n")
+        let _ = try ABNF(string: source)
         Issue.record("Expected ABNF.ParserError to be thrown")
     } catch let error as ABNF.ParserError {
-        #expect(error.line == 2)
-        #expect(error.column == 24)
+        let location = error.location(in: source)
+        #expect(location.line == 2)
+        #expect(location.column == 24)
     } catch {
         Issue.record("Expected ABNF.ParserError, got \(type(of: error))")
     }
